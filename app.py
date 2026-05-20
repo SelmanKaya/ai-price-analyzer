@@ -144,8 +144,8 @@ def yapay_zeka_analiz(urunler):
 
 st.title("Evrensel AI Ürün Analiz Motoru")
 
-hedef_url = st.text_input("Analiz Edilecek Kategori Linki:", value="https://www.vatanbilgisayar.com/gaming-mouse/")
-aranacak_ozellikler = st.text_input("Karşılaştırılacak Özellikleri Virgülle Yazın:", value="DPI, Sensör, Buton Sayısı, Ağırlık, Kablosuz")
+hedef_url = st.text_input("Analiz Edilecek Kategori Linki:", value="https://www.hawkchair.com/oyuncu-koltugu")
+aranacak_ozellikler = st.text_input("Karşılaştırılacak Özellikleri Virgülle Yazın:", value="kolçak , demir ayaklık , kılıf , sünger , bel desteği")
 max_urun = st.slider("Taranacak Maksimum Ürün Sayısı:", min_value=2, max_value=50, value=5)
 
 if st.button("Ajanı Çalıştır ve Analiz Et 🔥"):
