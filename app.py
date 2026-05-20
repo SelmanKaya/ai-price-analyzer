@@ -14,7 +14,6 @@ st.set_page_config(page_title="AI Fiyat/Performans Motoru", page_icon="🏆", la
 load_dotenv()
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-
 # ──────────────────────────────────────────────
 # 1. VERİ KAZIMA VE AYRIŞTIRMA MANTIĞI
 # ──────────────────────────────────────────────
@@ -22,19 +21,34 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 def urun_linklerini_topla(ana_url):
     scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False})
     
-    resp = scraper.get(ana_url, timeout=15)
-    soup = BeautifulSoup(resp.content, "lxml")
+    try:
+        resp = scraper.get(ana_url, timeout=15)
+        soup = BeautifulSoup(resp.content, "lxml")
+    except Exception as e:
+        st.error(f"Sayfa çekilemedi: {e}")
+        return []
 
     domain = "/".join(ana_url.split("/")[:3])
 
+    # SADECE temel gereksiz HTML etiketlerini siliyoruz
+    for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
+        tag.extract()
+        
+    # NOT: div class'ı içinde "slider", "banner", "menu" arayıp silen kodu
+    # Vatan Bilgisayar'ın ürün listesini bozduğu için kaldırdık!
+
     yasakli_kelimeler = [
         "servis", "iletisim", "hakkimizda", "magaza", "kategori",
-        "iptal", "iade", "alim", "surec", "kampanya"
+        "iptal", "iade", "alim", "surec", "kampanya", "sepet", "login", "uye"
     ]
 
     linkler = []
     for a in soup.find_all("a", href=True):
         href = a["href"].lower()
+
+        # Sayfanın kendisi veya boş linkse atla
+        if href == ana_url.lower() or href == "/" or href.startswith("javascript"):
+            continue
 
         if any(yasakli in href for yasakli in yasakli_kelimeler):
             continue
@@ -46,12 +60,14 @@ def urun_linklerini_topla(ana_url):
 
     return linkler
 
-
 def urun_metni_cek(url):
     scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False})
     
-    resp = scraper.get(url, timeout=15)
-    soup = BeautifulSoup(resp.content, "lxml")
+    try:
+        resp = scraper.get(url, timeout=15)
+        soup = BeautifulSoup(resp.content, "lxml")
+    except:
+        return ""
     
     for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
         tag.extract()
@@ -125,9 +141,9 @@ def yapay_zeka_analiz(urunler):
 
 st.title("Evrensel AI Ürün Analiz Motoru")
 
-hedef_url = st.text_input("Analiz Edilecek Kategori Linki:", value="https://www.vatanbilgisayar.com/oyuncu-mouse/")
-aranacak_ozellikler = st.text_input("Karşılaştırılacak Özellikleri Virgülle Yazın:", value="DPI, Sensör, Buton Sayısı, Ağırlık")
-max_urun = st.slider("Taranacak Maksimum Ürün Sayısı:", min_value=2, max_value=20, value=5)
+hedef_url = st.text_input("Analiz Edilecek Kategori Linki:", value="https://www.vatanbilgisayar.com/gaming-mouse/")
+aranacak_ozellikler = st.text_input("Karşılaştırılacak Özellikleri Virgülle Yazın:", value="DPI, Sensör, Buton Sayısı, Ağırlık, Kablosuz")
+max_urun = st.slider("Taranacak Maksimum Ürün Sayısı:", min_value=2, max_value=50, value=5)
 
 if st.button("Ajanı Çalıştır ve Analiz Et 🔥"):
     if not hedef_url:
