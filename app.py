@@ -50,6 +50,9 @@ def urun_linklerini_topla(ana_url):
         if href == ana_url.lower() or href == "/" or href.startswith("javascript"):
             continue
 
+        if "#" in href:
+            continue
+
         if any(yasakli in href for yasakli in yasakli_kelimeler):
             continue
 
