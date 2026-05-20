@@ -1,7 +1,7 @@
 import os
 import json
 import time
-import requests
+import cloudscraper
 import pandas as pd
 from bs4 import BeautifulSoup
 from groq import Groq
@@ -20,8 +20,9 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # ──────────────────────────────────────────────
 
 def urun_linklerini_topla(ana_url):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    resp = requests.get(ana_url, headers=headers, timeout=15)
+    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False})
+    
+    resp = scraper.get(ana_url, timeout=15)
     soup = BeautifulSoup(resp.content, "lxml")
 
     domain = "/".join(ana_url.split("/")[:3])
@@ -47,9 +48,11 @@ def urun_linklerini_topla(ana_url):
 
 
 def urun_metni_cek(url):
-    headers = {"User-Agent": "Mozilla/5.0"}
-    resp = requests.get(url, headers=headers, timeout=15)
+    scraper = cloudscraper.create_scraper(browser={'browser': 'chrome', 'platform': 'windows', 'mobile': False})
+    
+    resp = scraper.get(url, timeout=15)
     soup = BeautifulSoup(resp.content, "lxml")
+    
     for tag in soup(["script", "style", "nav", "footer", "header", "aside"]):
         tag.extract()
     return soup.get_text(separator=" ", strip=True)[:15000]
