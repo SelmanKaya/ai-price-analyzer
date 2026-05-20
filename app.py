@@ -99,7 +99,7 @@ def groq_json_cikar(ham_metin, dinamik_ozellikler):
         st.warning(f"Groq JSON çıkarım hatası: {e}")
         return None
 
-
+@st.cache_data(ttl=3600)
 def yapay_zeka_analiz(urunler):
     urun_listesi_str = json.dumps(urunler, ensure_ascii=False, indent=2)
 
@@ -187,7 +187,13 @@ if st.button("Ajanı Çalıştır ve Analiz Et 🔥"):
 
             # Adım 4: Groq (Llama 70B) ile derin analiz
             st.write(f"2. Groq Llama 70B ile {len(veritabani)} ürün analiz ediliyor...")
-            analiz = yapay_zeka_analiz(veritabani)
+            try:
+                analiz = yapay_zeka_analiz(veritabani)
+            except Exception as e:
+                if "429" in str(e): # 429 genellikle "Too Many Requests" (limit doldu) hatasıdır
+                    st.warning("Ücretsiz analiz limitimiz şu an dolmuş olabilir. Lütfen bir süre sonra tekrar deneyin.")
+                else:
+                    st.error(f"Bir hata oluştu: {e}")
 
             if analiz:
                 status.update(label="Analiz Tamamlandı!", state="complete", expanded=False)
